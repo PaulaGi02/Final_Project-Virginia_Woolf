@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 from collections import Counter
 import numpy as np
+import re
 
 
 DEFAULT_BAN_LEMMAS = {
     "clarissa", "dalloway", "mrs", "septimus", "warren", "smith", "peter", "holmes",
-    "say", "think", "tell", "ask", "thing",
+    "say", "think", "tell", "ask", "thing", "like"
 }
 
 @dataclass
@@ -28,7 +29,7 @@ def analyze_voice(text: str, nlp, top_n_lemmas: int = 10, ban_lemmas=None):
             sent_lens.append(len(toks))
     mean_sent_len = float(np.mean(sent_lens)) if sent_lens else 0.0
 
-    # POS proportions (simple “fingerprint”)
+    # POS proportions
     pos_counts = Counter(t.pos_ for t in doc if t.is_alpha)
     total = sum(pos_counts.values()) or 1
     keep = ["NOUN", "VERB", "ADJ", "ADV", "PRON"]
@@ -51,3 +52,42 @@ def analyze_voice(text: str, nlp, top_n_lemmas: int = 10, ban_lemmas=None):
         top_pos=top_pos,
         top_lemmas=top_lemmas,
     )
+
+def build_candidates(text: str, nlp, top_n: int = 400, ban_lemmas=None):
+    if ban_lemmas is None:
+        ban_lemmas = set()
+
+    doc = nlp(text)
+    lemmas = []
+    for t in doc:
+        if not (t.is_alpha and not t.is_stop and len(t) > 2):
+            continue
+        lem = t.lemma_.lower()
+        if lem in ban_lemmas:
+            continue
+        lemmas.append(lem)
+
+    return [w for w, _ in Counter(lemmas).most_common(top_n)]
+
+#
+def keyword_hits(sentence: str, keywords):
+    s = sentence.lower()
+    return sum(1 for kw in keywords if re.search(rf"\b{kw}\b", s))
+
+
+
+def generate_biased(model, keywords, n=120):
+    best = None
+    best_score = -1
+
+    for _ in range(n):
+        sent = model.make_sentence(tries=20)
+        if not sent:
+            continue
+
+        score = keyword_hits(sent, keywords)
+        if score > best_score:
+            best_score = score
+            best = sent
+
+    return best or "(no output)"

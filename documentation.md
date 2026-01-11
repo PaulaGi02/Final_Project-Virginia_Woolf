@@ -51,5 +51,31 @@ SEPTIMUS: I leant over the edge of the world, he said.
 
 Type a word (or quit): 
 
+- next step expand the user’s word into similar words using spaCy vectors. 
+- first complication, connecting vectors with Spacy. first kinda mixed up the variables between voice.py and processes.py therefore did not work.
+- Type a word (or quit): time
+
+Clarissa keywords: ['time', 'go', 'come', 'old', 'look', 'know', 'night', 'see', 'time']
+Septimus keywords: ['time', 'look', 'time', 'go', 'see', 'come', 'know', 'run', 'old']
+
+CLARISSA: Strange, she thought, waiting to cross, half the time she gave a party.
+SEPTIMUS: could see him staring at the time; He began, very cautiously, to open his eyes, to see a dog become a man!
+
+Type a word (or quit): flower
+
+Clarissa keywords: ['flower', 'flower', 'leaf', 'fall', 'grow']
+Septimus keywords: ['flower', 'flower', 'fern', 'leaf', 'fall', 'grow', 'begin', 'root']
+
+CLARISSA: Arlington Street and Piccadilly seemed to chafe the very temper of her own part, it was now over.
+SEPTIMUS: A sparrow perched on the back of a fern.
+
+Type a word (or quit): world
+
+Clarissa keywords: ['world', 'life', 'dignity', 'earth', 'heavens', 'ordinary', 'monster', 'heaven', 'divine']
+Septimus keywords: ['world', 'world', 'life', 'revelation', 'society', 'universal', 'profound', 'harmony', 'mankind']
+
+CLARISSA: The leaden circles dissolved in the Indian Army--thank Heaven she had quite forgotten what she loved; life; London; this moment of June.
+SEPTIMUS: He lay very high, on the heights; the fugitive; the drowned sailor; the poet of the world seemed to say.
+
 to do
 - delete  most common filler words 
