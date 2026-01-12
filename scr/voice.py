@@ -3,17 +3,18 @@ from collections import Counter
 import numpy as np
 import re
 
-
 DEFAULT_BAN_LEMMAS = {
     "clarissa", "dalloway", "mrs", "septimus", "warren", "smith", "peter", "holmes",
     "say", "think", "tell", "ask", "thing", "like"
 }
+
 
 @dataclass
 class VoiceStats:
     mean_sent_len: float
     top_pos: dict
     top_lemmas: list
+
 
 def analyze_voice(text: str, nlp, top_n_lemmas: int = 10, ban_lemmas=None):
     if ban_lemmas is None:
@@ -53,6 +54,7 @@ def analyze_voice(text: str, nlp, top_n_lemmas: int = 10, ban_lemmas=None):
         top_lemmas=top_lemmas,
     )
 
+
 def build_candidates(text: str, nlp, top_n: int = 400, ban_lemmas=None):
     if ban_lemmas is None:
         ban_lemmas = set()
@@ -69,14 +71,15 @@ def build_candidates(text: str, nlp, top_n: int = 400, ban_lemmas=None):
 
     return [w for w, _ in Counter(lemmas).most_common(top_n)]
 
-#
+
 def keyword_hits(sentence: str, keywords):
+    """Count how many keywords appear in the sentence"""
     s = sentence.lower()
     return sum(1 for kw in keywords if re.search(rf"\b{kw}\b", s))
 
 
-
 def generate_biased(model, keywords, n=120):
+    """Generate a single sentence biased toward keywords"""
     best = None
     best_score = -1
 
@@ -91,3 +94,18 @@ def generate_biased(model, keywords, n=120):
             best = sent
 
     return best or "(no output)"
+
+
+def generate_biased_multi(model, keywords, num_sentences=3, n=120):
+    """
+    Generate multiple sentences and chain them together for longer output.
+    Each sentence is independently biased toward the keywords.
+    """
+    sentences = []
+
+    for _ in range(num_sentences):
+        sent = generate_biased(model, keywords, n=n)
+        if sent and sent != "(no output)":
+            sentences.append(sent)
+
+    return " ".join(sentences) if sentences else "(no output)"

@@ -54,7 +54,7 @@ Type a word (or quit):
 - next step expand the user’s word into similar words using spaCy vectors. 
 - first complication, connecting vectors with Spacy. first kinda mixed up the variables between voice.py and processes.py therefore did not work.
 - Type a word (or quit): time
-
+ 
 Clarissa keywords: ['time', 'go', 'come', 'old', 'look', 'know', 'night', 'see', 'time']
 Septimus keywords: ['time', 'look', 'time', 'go', 'see', 'come', 'know', 'run', 'old']
 
@@ -77,5 +77,12 @@ Septimus keywords: ['world', 'world', 'life', 'revelation', 'society', 'universa
 CLARISSA: The leaden circles dissolved in the Indian Army--thank Heaven she had quite forgotten what she loved; life; London; this moment of June.
 SEPTIMUS: He lay very high, on the heights; the fugitive; the drowned sailor; the poet of the world seemed to say.
 
+- wanting to create a python interface
+
 to do
 - delete  most common filler words 
+- all_words =  [token for token in virginia if token.is_alpha] # deleting all extra character such aas spaces
+word_count = Counter([w.text for w in all_words]) #counting words
+
+all_words_without_sw = [word for word in all_words if word.text.lower() not in STOP_WORDS] 
+- trying to do it with this
