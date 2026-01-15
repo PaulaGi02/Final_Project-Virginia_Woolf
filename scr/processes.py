@@ -2,7 +2,8 @@ import re
 import numpy as np
 
 def clean_text(text:str) -> str:
-    text = text.replace("\r\n", "\n")
+    text = [token for token in text if token.is_alpha]  # deleting all extra character such aas spaces
+    # text = text.replace("\r\n", "\n")
     text = text.replace("“", '"').replace("”", '"').replace("’", "'").replace("‘", "'")
     text = re.sub(r"[ \t]+", " ", text)
     text = re.sub(r"\n{3,}", "\n\n", text)

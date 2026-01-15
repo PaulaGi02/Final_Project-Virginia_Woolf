@@ -78,6 +78,15 @@ CLARISSA: The leaden circles dissolved in the Indian Army--thank Heaven she had 
 SEPTIMUS: He lay very high, on the heights; the fugitive; the drowned sailor; the poet of the world seemed to say.
 
 - wanting to create a python interface
+- wanted to keep it simple and inspired to the early interfaces of computers, as the book is also older and published in 1925
+- here i worked with pygame as i have already worked with the library and am also familiar. 
+- went quite easy as it was a simple interface
+- only problem i encountered when adding the button that the text generated went over it
+- needed to create some kind of boundery
+
+- 13. Jan
+- fixing bug, because i placed self.load_models() at the wrong place, when entering a word it did not work
+- adding different courser when courser hovers over a button, because page loads kinda long and can be confusing for user when takes too long
 
 to do
 - delete  most common filler words 

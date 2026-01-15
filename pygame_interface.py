@@ -21,6 +21,43 @@ ACCENT_COLOR = (0, 255, 0)  # Classic terminal green
 DIM_COLOR = (100, 100, 100)  # Grey for subtle elements
 CURSOR_COLOR = (0, 255, 0)  # Blinking green cursor
 
+CONTROL_BAR_HEIGHT = 70
+CONTROL_BAR_Y = WINDOW_HEIGHT - CONTROL_BAR_HEIGHT - 10
+
+CONTENT_BOTTOM_Y = CONTROL_BAR_Y - 20  # hard stop for text
+
+PAGE_MAIN = "main"
+PAGE_PROCESS = "process"
+
+PROCESS_TEXT = """
+PROCESS LOG :: HOW THE TEXT IS GENERATED
+1) Corpus selection:
+   - Clarissa corpus: extracted passages
+   - Septimus corpus: extracted passages
+
+2) Preprocessing:
+   - Normalize whitespace and punctuation
+   - Preserve sentence punctuation to keep Woolf-like rhythm
+
+3) Voice analysis (spaCy):
+   - Sentence length, POS proportions, frequent lemmas
+
+4) Candidate lexicon:
+   - Build frequent lemmas per character (stopwords removed)
+   - Exclude character names and reporting verbs
+
+5) Semantic expansion:
+   - User prompt word expanded via spaCy vectors (cosine similarity)
+   - Produces a semantic field (word + nearest neighbors)
+
+6) Markov generation:
+   - Generate many candidate sentences per character (Markov chain)
+   - Score each by keyword hits from semantic field
+   - Choose the best-scoring sentence
+
+7) Output:
+   - Chain 3 sentences for a longer “voice block”
+""".strip()
 # Monospace font for terminal aesthetic
 try:
     # Try to use a monospace font
@@ -75,6 +112,7 @@ class WoolfInterface:
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption("THE ROOM BETWEEN US")
         self.clock = pygame.time.Clock()
+        self.current_cursor = pygame.SYSTEM_CURSOR_ARROW
 
         # State
         self.input_text = ""
@@ -97,8 +135,83 @@ class WoolfInterface:
         # Show initial instructions
         self.show_intro = True
 
-        # Load models
+        # Page state
+        self.page = PAGE_MAIN
+
+        # Buttons (rectangles)
+        self.process_button_rect = pygame.Rect(
+            WINDOW_WIDTH // 2 - 150,
+            CONTROL_BAR_Y + 15,
+            300,
+            40
+        )
+
+        self.back_button_rect = pygame.Rect(
+            WINDOW_WIDTH // 2 - 80,
+            CONTROL_BAR_Y + 15,
+            160,
+            40
+        )
+        # Load models ONCE at startup
         self.load_models()
+
+    def update_cursor(self):
+        mouse_pos = pygame.mouse.get_pos()
+        new_cursor = pygame.SYSTEM_CURSOR_ARROW
+
+        if self.page == PAGE_MAIN:
+            if self.process_button_rect.collidepoint(mouse_pos):
+                new_cursor = pygame.SYSTEM_CURSOR_HAND
+
+        elif self.page == PAGE_PROCESS:
+            if self.back_button_rect.collidepoint(mouse_pos):
+                new_cursor = pygame.SYSTEM_CURSOR_HAND
+
+        if new_cursor != self.current_cursor:
+            pygame.mouse.set_cursor(new_cursor)
+            self.current_cursor = new_cursor
+
+    def draw_control_bar(self):
+        # Solid black bar to block text behind it
+        pygame.draw.rect(
+            self.screen,
+            BG_COLOR,
+            (0, CONTROL_BAR_Y, WINDOW_WIDTH, CONTROL_BAR_HEIGHT)
+        )
+
+        # Top border line
+        pygame.draw.line(
+            self.screen,
+            DIM_COLOR,
+            (30, CONTROL_BAR_Y),
+            (WINDOW_WIDTH - 30, CONTROL_BAR_Y),
+            1
+        )
+
+
+    def draw_button(self, rect, label, active=True):
+    # Border + text, terminal style
+        border_color = ACCENT_COLOR if active else DIM_COLOR
+        pygame.draw.rect(self.screen, border_color, rect, 2)
+
+        text_surf = SMALL_FONT.render(label, True, border_color)
+        text_rect = text_surf.get_rect(center=rect.center)
+        self.screen.blit(text_surf, text_rect)
+
+    def draw_process_page(self):
+        # Background already filled in draw()
+        self.draw_title()
+
+        # Header
+        header = NAME_FONT.render("[PROCESS]", True, ACCENT_COLOR)
+        self.screen.blit(header, (50, 130))
+
+        # Body text (wrapped)
+        block = TextBlock(PROCESS_TEXT, TEXT_FONT, WINDOW_WIDTH - 100, TEXT_COLOR)
+        block.render(self.screen, 50, 190, TEXT_FONT, line_spacing=6)
+
+        # Back button
+        self.draw_button(self.back_button_rect, "BACK [ESC]")
 
     def load_models(self):
         """Load text and build models"""
@@ -292,6 +405,20 @@ class WoolfInterface:
         self.draw_scanlines()
         self.draw_border()
 
+        # Page routing
+        if self.page == PAGE_PROCESS:
+            self.draw_process_page()
+            pygame.display.flip()
+            return
+
+        # MAIN page content
+        self.draw_title()
+        self.draw_input_area()
+
+        # Process button (only on main page)
+        self.draw_button(self.process_button_rect, "PROCESS / METHOD")
+
+
         # Content
         self.draw_title()
         self.draw_input_area()
@@ -334,10 +461,27 @@ class WoolfInterface:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mx, my = event.pos
+
+                if self.page == PAGE_MAIN:
+                    if self.process_button_rect.collidepoint(mx, my):
+                        self.page = PAGE_PROCESS
+                        return True
+
+                elif self.page == PAGE_PROCESS:
+                    if self.back_button_rect.collidepoint(mx, my):
+                        self.page = PAGE_MAIN
+                        return True
+
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
+                    if self.page == PAGE_PROCESS:
+                        self.page = PAGE_MAIN
+                        return True
                     return False
+
 
                 elif event.key == pygame.K_RETURN:
                     if self.input_text.strip():
@@ -369,6 +513,7 @@ class WoolfInterface:
         running = True
         while running:
             running = self.handle_events()
+            self.update_cursor()
             self.update()
             self.draw()
             self.clock.tick(FPS)
