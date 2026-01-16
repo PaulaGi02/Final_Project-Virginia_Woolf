@@ -15,6 +15,15 @@ class VoiceStats:
     top_pos: dict
     top_lemmas: list
 
+def generate_with_length(model, min_chars=80, max_chars=450, tries=200):
+    for _ in range(tries):
+        sentence = model.make_sentence(tries=20)
+        if not sentence:
+            continue
+        if min_chars <= len(sentence) <= max_chars:
+            return sentence
+    return None
+
 
 def analyze_voice(text: str, nlp, top_n_lemmas: int = 10, ban_lemmas=None):
     if ban_lemmas is None:
@@ -78,14 +87,16 @@ def keyword_hits(sentence: str, keywords):
     return sum(1 for kw in keywords if re.search(rf"\b{kw}\b", s))
 
 
-def generate_biased(model, keywords, n=120):
-    """Generate a single sentence biased toward keywords"""
+def generate_biased(model, keywords, n=120, min_chars=80, max_chars=450):
+    """Generate a single sentence biased toward keywords and within a target length."""
     best = None
     best_score = -1
 
     for _ in range(n):
         sent = model.make_sentence(tries=20)
         if not sent:
+            continue
+        if not (min_chars <= len(sent) <= max_chars):
             continue
 
         score = keyword_hits(sent, keywords)
@@ -97,10 +108,6 @@ def generate_biased(model, keywords, n=120):
 
 
 def generate_biased_multi(model, keywords, num_sentences=3, n=120):
-    """
-    Generate multiple sentences and chain them together for longer output.
-    Each sentence is independently biased toward the keywords.
-    """
     sentences = []
 
     for _ in range(num_sentences):

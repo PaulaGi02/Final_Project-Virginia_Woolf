@@ -87,7 +87,11 @@ SEPTIMUS: He lay very high, on the heights; the fugitive; the drowned sailor; th
 - 13. Jan
 - fixing bug, because i placed self.load_models() at the wrong place, when entering a word it did not work
 - adding different courser when courser hovers over a button, because page loads kinda long and can be confusing for user when takes too long
-
+- adding process into a seperate file (pro.py) to make the interface code more structured
+- adding a scrollbar but text now collides with scrollbar
+- adding a rim from button to text
+- min and max character does not work why?
+- 
 to do
 - delete  most common filler words 
 - all_words =  [token for token in virginia if token.is_alpha] # deleting all extra character such aas spaces

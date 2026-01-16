@@ -1,13 +1,21 @@
 import re
 import numpy as np
 
-def clean_text(text:str) -> str:
-    text = [token for token in text if token.is_alpha]  # deleting all extra character such aas spaces
-    # text = text.replace("\r\n", "\n")
+import re
+import numpy as np
+
+def clean_text(text: str) -> str:
+    # normalize newlines
+    text = text.replace("\r\n", "\n")
+    # normalize curly quotes
     text = text.replace("“", '"').replace("”", '"').replace("’", "'").replace("‘", "'")
+
+    # collapse whitespace
     text = re.sub(r"[ \t]+", " ", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
+
     return text.strip()
+
 
 def cosine(a, b):
     denom = (np.linalg.norm(a) * np.linalg.norm(b))
