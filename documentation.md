@@ -83,7 +83,8 @@ SEPTIMUS: He lay very high, on the heights; the fugitive; the drowned sailor; th
 - went quite easy as it was a simple interface
 - only problem i encountered when adding the button that the text generated went over it
 - needed to create some kind of boundery
-
+- Bug: Individual sentences were validated for length, but concatenating multiple sentences exceeded the 450 character limit.
+- Fix:Track total length across all sentences and stop adding when limit would be exceeded.
 - 13. Jan
 - fixing bug, because i placed self.load_models() at the wrong place, when entering a word it did not work
 - adding different courser when courser hovers over a button, because page loads kinda long and can be confusing for user when takes too long
@@ -91,7 +92,8 @@ SEPTIMUS: He lay very high, on the heights; the fugitive; the drowned sailor; th
 - adding a scrollbar but text now collides with scrollbar
 - adding a rim from button to text
 - min and max character does not work why?
-- 
+
+15.jan The original code had three critical bugs that needed correction. First, the Markov chain text generation was not respecting the specified character length constraints (80-450 characters). The generate_longer_text() method was calling generate_biased() which had length checking, but then the main method wasn't enforcing these limits when combining multiple sentences. This was fixed by adding explicit min_chars and max_chars parameters to generate_longer_text() and validating each generated sentence before accepting it. Second, the hand cursor hover effect wasn't working because update_cursor() was only being called inside the event loop rather than every frame. Moving this call to the main run() loop ensures the cursor updates continuously based on mouse position. Third, the button click detection was unreliable because collidepoint() was being passed a nested tuple ((x, y)) instead of a simple tuple (x, y). This caused the collision detection to only work in certain areas of the button. The fix was to pass event.pos directly to collidepoint() since it's already in the correct tuple format, and add continue statements after successful button clicks to prevent further event processing in that frame.
 to do
 - delete  most common filler words 
 - all_words =  [token for token in virginia if token.is_alpha] # deleting all extra character such aas spaces

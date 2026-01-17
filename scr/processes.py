@@ -1,9 +1,6 @@
 import re
 import numpy as np
 
-import re
-import numpy as np
-
 def clean_text(text: str) -> str:
     # normalize newlines
     text = text.replace("\r\n", "\n")

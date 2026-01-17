@@ -5,7 +5,7 @@ import spacy
 
 from scr.processes import clean_text, expand_with_vectors
 from scr.voice import analyze_voice, DEFAULT_BAN_LEMMAS, build_candidates, generate_biased
-from scr.pro import PROCESS_SECTIONS  # <-- your structured process content
+from scr.pro import PROCESS_SECTIONS
 
 # Pygame init
 pygame.init()
@@ -23,12 +23,12 @@ CURSOR_COLOR = (0, 255, 0)
 
 CONTROL_BAR_HEIGHT = 70
 CONTROL_BAR_Y = WINDOW_HEIGHT - CONTROL_BAR_HEIGHT - 10
-CONTENT_BOTTOM_Y = CONTROL_BAR_Y - 20  # hard stop for content text
+CONTENT_BOTTOM_Y = CONTROL_BAR_Y - 20
 
 PAGE_MAIN = "main"
 PAGE_PROCESS = "process"
 
-# Fonts (monospace for terminal aesthetic)
+# Fonts
 try:
     TITLE_FONT = pygame.font.SysFont("courier", 48, bold=True)
     NAME_FONT = pygame.font.SysFont("courier", 32, bold=True)
@@ -43,7 +43,6 @@ except Exception:
     SMALL_FONT = pygame.font.Font(None, 16)
 
 
-# Helper: simple word-wrap block
 class TextBlock:
     def __init__(self, text, font, max_width, color):
         self.lines = []
@@ -72,14 +71,13 @@ class TextBlock:
         return cur_y
 
 
-# Main UI class
 class WoolfInterface:
     def __init__(self):
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption("THE ROOM BETWEEN US")
         self.clock = pygame.time.Clock()
 
-        # Cursor state (system cursor)
+        # Cursor state
         self.current_cursor = pygame.SYSTEM_CURSOR_ARROW
 
         # App state
@@ -91,7 +89,7 @@ class WoolfInterface:
         self.input_text = ""
         self.cursor_visible = True
         self.cursor_timer = 0
-        self.cursor_blink_speed = 500  # ms
+        self.cursor_blink_speed = 500
 
         # Generation results
         self.current_word = None
@@ -110,15 +108,14 @@ class WoolfInterface:
             WINDOW_WIDTH // 2 - 80, CONTROL_BAR_Y + 15, 160, 40
         )
 
-        # Process page scrolling (rendered once to a tall surface)
+        # Process page scrolling
         self.process_scroll = 0
         self.process_surface = None
         self.process_surface_height = 0
 
-        # Load models ONCE
+        # Load models
         self.load_models()
 
-    # Model loading
     def load_models(self):
         print("Loading models...")
         self.nlp = spacy.load("en_core_web_md")
@@ -148,14 +145,49 @@ class WoolfInterface:
 
         print("Models loaded!")
 
-    # Generation
-    def generate_longer_text(self, model, keywords, num_sentences=3):
+    def generate_longer_text(self, model, keywords, num_sentences=3, min_chars=80, max_chars=450):
+        """Generate multiple sentences with total length constraints"""
         sentences = []
+        total_length = 0
+        max_attempts = 50  # Versuche pro Satz
+
         for _ in range(num_sentences):
-            sent = generate_biased(model, keywords, n=140)
-            if sent and sent != "(no output)":
-                sentences.append(sent)
-        return " ".join(sentences) if sentences else "(no output)"
+            best_sent = None
+            best_score = -1
+
+            for attempt in range(max_attempts):
+                sent = model.make_sentence(tries=20)
+                if not sent:
+                    continue
+
+                # Prüfe ob dieser Satz noch reinpasst
+                potential_total = total_length + len(sent) + (1 if sentences else 0)
+                if potential_total > max_chars:
+                    continue
+
+                # Score basierend auf Keywords
+                score = sum(1 for kw in keywords if kw.lower() in sent.lower())
+
+                if score > best_score:
+                    best_score = score
+                    best_sent = sent
+
+            if best_sent:
+                # Prüfe nochmal die Gesamtlänge vor dem Hinzufügen
+                potential_total = total_length + len(best_sent) + (1 if sentences else 0)
+                if potential_total <= max_chars:
+                    sentences.append(best_sent)
+                    total_length = potential_total
+                else:
+                    break  # Kein Platz mehr
+
+        result = " ".join(sentences) if sentences else "(no output)"
+
+        # Sicherheitscheck: Falls immer noch zu lang, kürze
+        if len(result) > max_chars:
+            result = result[:max_chars].rsplit(' ', 1)[0] + "..."
+
+        return result if len(result) >= min_chars else "(no output)"
 
     def generate_from_word(self, word):
         self.loading = True
@@ -169,36 +201,33 @@ class WoolfInterface:
             word, self.nlp, self.septimus_candidates
         )
 
+        # Verwende die korrigierte Methode mit Längenbeschränkungen
         self.clarissa_output = self.generate_longer_text(
-            self.clarissa_model, self.clarissa_keywords, num_sentences=3
+            self.clarissa_model, self.clarissa_keywords,
+            num_sentences=3, min_chars=80, max_chars=450
         )
         self.septimus_output = self.generate_longer_text(
-            self.septimus_model, self.septimus_keywords, num_sentences=3
+            self.septimus_model, self.septimus_keywords,
+            num_sentences=3, min_chars=80, max_chars=450
         )
 
         self.loading = False
 
-
-    # Cursor hover behavior
     def update_cursor(self):
+        """Update cursor based on mouse position"""
         mouse_pos = pygame.mouse.get_pos()
         new_cursor = pygame.SYSTEM_CURSOR_ARROW
 
         if self.page == PAGE_MAIN and self.process_button_rect.collidepoint(mouse_pos):
             new_cursor = pygame.SYSTEM_CURSOR_HAND
-        if self.page == PAGE_PROCESS and self.back_button_rect.collidepoint(mouse_pos):
+        elif self.page == PAGE_PROCESS and self.back_button_rect.collidepoint(mouse_pos):
             new_cursor = pygame.SYSTEM_CURSOR_HAND
 
         if new_cursor != self.current_cursor:
             pygame.mouse.set_cursor(new_cursor)
             self.current_cursor = new_cursor
 
-    # Process page rendering (scrollable surface)
     def build_process_surface(self):
-        """
-        Render PROCESS_SECTIONS into one tall surface (document).
-        Then we blit a clipped window from it based on self.process_scroll.
-        """
         max_width = WINDOW_WIDTH - 140
         lines = []
 
@@ -215,14 +244,12 @@ class WoolfInterface:
             lines.append(("SP", ""))
             lines.append(("SP", ""))
 
-        # Wrap paragraphs to max_width
         wrapped = []
         for kind, text in lines:
             if kind in ("H1", "SP"):
                 wrapped.append((kind, text))
                 continue
 
-            # wrap "P"
             words = text.split()
             current = []
             for w in words:
@@ -236,14 +263,13 @@ class WoolfInterface:
             if current:
                 wrapped.append(("P", " ".join(current)))
 
-        # height compute
         h = 0
         for kind, _ in wrapped:
             if kind == "H1":
                 h += NAME_FONT.get_height() + 10
             elif kind == "P":
                 h += TEXT_FONT.get_height() + 6
-            else:  # SP
+            else:
                 h += 12
         h = max(h, 1)
 
@@ -287,10 +313,8 @@ class WoolfInterface:
         bar_y = viewport_rect.y + 4
         bar_h = viewport_rect.height - 8
 
-        # track
         pygame.draw.rect(self.screen, DIM_COLOR, (bar_x, bar_y, bar_w, bar_h), 1)
 
-        # thumb
         thumb_h = max(30, int(bar_h * (view_h / content_h)))
         max_scroll = content_h - view_h
         ratio = self.process_scroll / max_scroll if max_scroll > 0 else 0.0
@@ -298,7 +322,6 @@ class WoolfInterface:
 
         pygame.draw.rect(self.screen, ACCENT_COLOR, (bar_x + 1, thumb_y, bar_w - 2, thumb_h), 0)
 
-    # Drawing: common UI elements
     def draw_scanlines(self):
         for y in range(0, WINDOW_HEIGHT, 4):
             pygame.draw.line(self.screen, (10, 10, 10), (0, y), (WINDOW_WIDTH, y), 1)
@@ -373,19 +396,16 @@ class WoolfInterface:
         current_y = y
         max_y = CONTENT_BOTTOM_Y
 
-        # header
         name_surf = NAME_FONT.render(f"[{name}]", True, ACCENT_COLOR)
         self.screen.blit(name_surf, (x, current_y))
         current_y += 40
 
-        # stats
         if stats and current_y < max_y:
             stat_text = f"AVG SENTENCE LENGTH: {stats.mean_sent_len:.1f}"
             stat_surf = SMALL_FONT.render(stat_text, True, DIM_COLOR)
             self.screen.blit(stat_surf, (x, current_y))
             current_y += 25
 
-        # keywords
         if keywords and self.current_word and current_y < max_y:
             kw_label = SMALL_FONT.render("SEMANTIC FIELD:", True, DIM_COLOR)
             self.screen.blit(kw_label, (x, current_y))
@@ -396,7 +416,6 @@ class WoolfInterface:
             current_y = kw_block.render(self.screen, x, current_y, SMALL_FONT, line_spacing=3, max_y=max_y)
             current_y += 25
 
-        # output
         if output and output != "(no output)" and current_y < max_y:
             out_label = SMALL_FONT.render("OUTPUT:", True, DIM_COLOR)
             self.screen.blit(out_label, (x, current_y))
@@ -405,8 +424,6 @@ class WoolfInterface:
             text_block = TextBlock(output, TEXT_FONT, 500, TEXT_COLOR)
             text_block.render(self.screen, x, current_y, TEXT_FONT, line_spacing=6, max_y=max_y)
 
-
-    # Page drawing
     def draw_process_page(self):
         self.draw_title()
 
@@ -420,7 +437,6 @@ class WoolfInterface:
 
         viewport = pygame.Rect(viewport_x, viewport_y, viewport_w, viewport_h)
 
-        # clip to viewport
         self.screen.set_clip(viewport)
         self.screen.blit(self.process_surface, (viewport_x, viewport_y - self.process_scroll))
         self.screen.set_clip(None)
@@ -428,7 +444,6 @@ class WoolfInterface:
         pygame.draw.rect(self.screen, DIM_COLOR, viewport, 1)
         self.draw_scrollbar(viewport)
 
-        # control bar + back button on top
         self.draw_control_bar()
         self.draw_button(self.back_button_rect, "BACK [ESC]")
 
@@ -455,7 +470,6 @@ class WoolfInterface:
             loading_text = TEXT_FONT.render("PROCESSING...", True, ACCENT_COLOR)
             self.screen.blit(loading_text, loading_text.get_rect(center=(WINDOW_WIDTH // 2, CONTROL_BAR_Y - 18)))
 
-        # control bar + process button on top
         self.draw_control_bar()
         self.draw_button(self.process_button_rect, "PROCESS / METHOD")
 
@@ -471,36 +485,30 @@ class WoolfInterface:
 
         pygame.display.flip()
 
-    # -----------------------------
-    # Event handling
-    # -----------------------------
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
 
-            # mouse wheel scroll (process page)
             if event.type == pygame.MOUSEWHEEL:
                 if self.page == PAGE_PROCESS:
                     self.scroll_process(-event.y * 40)
 
-            # mouse clicks
+            # EINZELCLICK für Buttons (button == 1 ist Linksclick)
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                mx, my = event.pos
+                pos = event.pos
 
-                if self.page == PAGE_MAIN and self.process_button_rect.collidepoint((mx, my)):
+                if self.page == PAGE_MAIN and self.process_button_rect.collidepoint(pos):
                     self.page = PAGE_PROCESS
                     if self.process_surface is None:
                         self.build_process_surface()
                     self.process_scroll = 0
-                    return True
-                self.update_cursor()
+                    continue  # Wichtig: verarbeite keine weiteren Events
 
-                if self.page == PAGE_PROCESS and self.back_button_rect.collidepoint((mx, my)):
+                if self.page == PAGE_PROCESS and self.back_button_rect.collidepoint(pos):
                     self.page = PAGE_MAIN
-                    return True
+                    continue
 
-            # keyboard
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     if self.page == PAGE_PROCESS:
@@ -508,7 +516,6 @@ class WoolfInterface:
                         return True
                     return False
 
-                # process page scroll keys
                 if self.page == PAGE_PROCESS:
                     if event.key == pygame.K_DOWN:
                         self.scroll_process(40)
@@ -518,10 +525,8 @@ class WoolfInterface:
                         self.scroll_process(200)
                     elif event.key == pygame.K_PAGEUP:
                         self.scroll_process(-200)
-                    continue  # don't type into input while on process page
-                self.update_cursor()
+                    continue
 
-                # main page typing
                 if event.key == pygame.K_RETURN:
                     if self.input_text.strip():
                         try:
@@ -540,9 +545,7 @@ class WoolfInterface:
 
         return True
 
-    # Update loop
     def update(self):
-        # blink cursor in input field
         self.cursor_timer += self.clock.get_time()
         if self.cursor_timer >= self.cursor_blink_speed:
             self.cursor_visible = not self.cursor_visible
@@ -552,7 +555,7 @@ class WoolfInterface:
         running = True
         while running:
             running = self.handle_events()
-            self.update_cursor()
+            self.update_cursor()  # Wichtig: Cursor jeden Frame updaten
             self.update()
             self.draw()
             self.clock.tick(FPS)
