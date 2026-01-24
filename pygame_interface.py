@@ -120,8 +120,8 @@ class WoolfInterface:
         print("Loading models...")
         self.nlp = spacy.load("en_core_web_md")
 
-        clarissa_txt = open("data/clarissa.txt", encoding="utf-8").read()
-        septimus_txt = open("data/septimus.txt", encoding="utf-8").read()
+        clarissa_txt = open("data/clarissa.txt").read()
+        septimus_txt = open("data/septimus.txt").read()
 
         self.clarissa_text = clean_text(clarissa_txt)
         self.septimus_text = clean_text(septimus_txt)
@@ -160,12 +160,11 @@ class WoolfInterface:
                 if not sent:
                     continue
 
-                # Prüfe ob dieser Satz noch reinpasst
                 potential_total = total_length + len(sent) + (1 if sentences else 0)
                 if potential_total > max_chars:
                     continue
 
-                # Score basierend auf Keywords
+                # score based on keywords
                 score = sum(1 for kw in keywords if kw.lower() in sent.lower())
 
                 if score > best_score:
@@ -173,17 +172,15 @@ class WoolfInterface:
                     best_sent = sent
 
             if best_sent:
-                # Prüfe nochmal die Gesamtlänge vor dem Hinzufügen
                 potential_total = total_length + len(best_sent) + (1 if sentences else 0)
                 if potential_total <= max_chars:
                     sentences.append(best_sent)
                     total_length = potential_total
                 else:
-                    break  # Kein Platz mehr
+                    break
 
         result = " ".join(sentences) if sentences else "(no output)"
 
-        # Sicherheitscheck: Falls immer noch zu lang, kürze
         if len(result) > max_chars:
             result = result[:max_chars].rsplit(' ', 1)[0] + "..."
 
@@ -201,7 +198,7 @@ class WoolfInterface:
             word, self.nlp, self.septimus_candidates
         )
 
-        # Verwende die korrigierte Methode mit Längenbeschränkungen
+        # length restriction
         self.clarissa_output = self.generate_longer_text(
             self.clarissa_model, self.clarissa_keywords,
             num_sentences=3, min_chars=80, max_chars=450
@@ -494,7 +491,7 @@ class WoolfInterface:
                 if self.page == PAGE_PROCESS:
                     self.scroll_process(-event.y * 40)
 
-            # EINZELCLICK für Buttons (button == 1 ist Linksclick)
+            # single click for button
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 pos = event.pos
 
@@ -503,7 +500,7 @@ class WoolfInterface:
                     if self.process_surface is None:
                         self.build_process_surface()
                     self.process_scroll = 0
-                    continue  # Wichtig: verarbeite keine weiteren Events
+                    continue
 
                 if self.page == PAGE_PROCESS and self.back_button_rect.collidepoint(pos):
                     self.page = PAGE_MAIN
