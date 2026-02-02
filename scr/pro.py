@@ -1,5 +1,3 @@
-# scr/process_log.py
-
 PROCESS_SECTIONS = [
     ("PROCESS LOG :: TEXT GENERATION STEPS", [
         "This page documents the method and selected outputs from the development process.",
