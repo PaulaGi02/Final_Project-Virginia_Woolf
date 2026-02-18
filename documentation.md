@@ -435,3 +435,9 @@ to explain the problem and how to fix it.
 **Date:** January 13  
 **To-do:** Create clear visual boundary between interactive and content areas  
 **Solution:** Added rim between button area and text content to create visual separation.
+
+### AI Usage
+AI was used for:
+- recommendations on how to structure the code more cleanly
+- bug fixes when I could not find anything on the internet/ forums
+- to check the documentation for grammar and clearness
