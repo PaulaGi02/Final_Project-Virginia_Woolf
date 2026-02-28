@@ -4,15 +4,15 @@ A small interactive “voice simulation” tool for *Mrs. Dalloway* that compare
 It trains separate Markov models on manually extracted passages (each character’s thoughts + spoken words), then steers generation using spaCy word vectors to build a “semantic field” from a user prompt. A retro Pygame terminal UI lets you enter a word and see both voices respond side-by-side.
 
 
-## Repository structure
-├── pygame_interface.py # Main app (Pygame UI + model loading + generation)
-├── scr/
-│ ├── processes.py # Text cleaning + cosine similarity + vector-based expansion
-│ ├── voice.py # Voice stats + candidate pool + biased generation helpers
-│ └── pro.py # PROCESS_SECTIONS content shown in the process page
-└── data/
-├── clarissa.txt # Extracted corpus: Clarissa (thoughts + speech)
-└── septimus.txt # Extracted corpus: Septimus (thoughts + speech)
+## Repository structure 
+├── pygame_interface.py # Main app (Pygame UI + model loading + generation)<p>
+├── scr/<p>
+│ ├── processes.py # Text cleaning + cosine similarity + vector-based expansion<p>
+│ ├── voice.py # Voice stats + candidate pool + biased generation helpers<p>
+│ └── pro.py # PROCESS_SECTIONS content shown in the process page<p>
+└── data/<p>
+├── clarissa.txt # Extracted corpus: Clarissa (thoughts + speech)<p>
+└── septimus.txt # Extracted corpus: Septimus (thoughts + speech)<p>
 
 
 
