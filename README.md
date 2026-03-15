@@ -5,16 +5,16 @@ It trains separate Markov models on manually extracted passages (each character�
 
 
 ## Repository structure 
-├── pygame_interface.py -> Main app (Pygame UI + model loading + generation)<p>
-├── documentation.md <p>
-├── scr/<p>
-  ├── processes.py -> Text cleaning + cosine similarity + vector-based expansion<p>
-  ├── voice.py -> Voice stats + candidate pool + biased generation helpers<p>
-  └── pro.py -> content shown in the process page<p>
-├── data/<p>
-  ├── clarissa.txt -> Extracted corpus: Clarissa (thoughts + speech)<p>
-  ├── ms dollaway.txt -> whole book <p>
-  └── septimus.txt -> Extracted corpus: Septimus (thoughts + speech)<p>
+├── pygame_interface.py -> Main app (Pygame UI + model loading + generation)<br>
+├── documentation.md<br>
+├── scr/ <br>
+  └── processes.py -> Text cleaning + cosine similarity + vector-based expansion <br>
+  └── voice.py -> Voice stats + candidate pool + biased generation helpers<p>
+  └── pro.py -> content shown in the process page<br>
+├── data/<br>
+  └── clarissa.txt -> Extracted corpus: Clarissa (thoughts + speech)<br>
+  └── ms dollaway.txt -> whole book <p>
+  └── septimus.txt -> Extracted corpus: Septimus (thoughts + speech)<br>
 
 
 
