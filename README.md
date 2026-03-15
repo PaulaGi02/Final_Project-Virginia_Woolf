@@ -8,13 +8,13 @@ It trains separate Markov models on manually extracted passages (each character�
 ├── pygame_interface.py -> Main app (Pygame UI + model loading + generation)<br>
 ├── documentation.md<br>
 ├── scr/ <br>
-  └── processes.py -> Text cleaning + cosine similarity + vector-based expansion <br>
+  <ul>└── processes.py -> Text cleaning + cosine similarity + vector-based expansion <br>
   └── voice.py -> Voice stats + candidate pool + biased generation helpers<p>
-  └── pro.py -> content shown in the process page<br>
+  └── pro.py -> content shown in the process page<br> </ul> 
 ├── data/<br>
-  └── clarissa.txt -> Extracted corpus: Clarissa (thoughts + speech)<br>
+  <ul>└── clarissa.txt -> Extracted corpus: Clarissa (thoughts + speech)<br>
   └── ms dollaway.txt -> whole book <p>
-  └── septimus.txt -> Extracted corpus: Septimus (thoughts + speech)<br>
+  └── septimus.txt -> Extracted corpus: Septimus (thoughts + speech)<br> <ul>
 
 
 
