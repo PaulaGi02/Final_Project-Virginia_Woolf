@@ -1,6 +1,6 @@
 # The Room Between Us
 
-A small interactive “voice simulation” tool for *Mrs. Dalloway* that compares Clarissa and Septimus through computational text generation.  
+A small interactive “voice simulation” tool for *Mrs. Dalloway* that compares the characters Clarissa and Septimus through computational text generation.  
 It trains separate Markov models on manually extracted passages (each character’s thoughts + spoken words), then steers generation using spaCy word vectors to build a “semantic field” from a user prompt. A retro Pygame terminal UI lets you enter a word and see both voices respond side-by-side.
 
 
