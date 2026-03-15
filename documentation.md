@@ -50,7 +50,7 @@ Python libraries or other projects.
 
 ### Text Preprocessing Implementation
 **Date:** 8.1.2026<p>
-**To-do:** Handle formatting inconsistencies in extracted text passages  <p>
+**To-do:** Handle formatting inconsistencies in extracted text passages <p>
 **Solution:** Created `clean_text` function in `processes.py` to perform several text normalization steps:
 - Normalize newlines by converting Windows-style `\r\n` to Unix-style `\n`
 - Normalize curly quotes (both opening and closing variants of double and single quotes) to straight ASCII equivalents to prevent encoding issues
